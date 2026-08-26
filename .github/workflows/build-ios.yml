@@ -10,6 +10,9 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Select Xcode 16
+        run: sudo xcode-select -s /Applications/Xcode_16.app/Contents/Developer
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -25,11 +28,6 @@ jobs:
           cd ios
           pod install
           cd ..
-
-      - name: Verify iOS Directory Contents
-        run: |
-          echo "Listing ios directory:"
-          ls -la ios
 
       - name: Build iOS App with Xcode
         run: |
