@@ -22,10 +22,18 @@ jobs:
       - name: Run Expo Prebuild
         run: npx expo prebuild --platform ios --clean
 
+      - name: Verify iOS Directory
+        run: |
+          if [ ! -d "ios" ]; then
+            echo "Error: ios directory was not generated!"
+            exit 1
+          fi
+          cd ios
+          ls -la
+
       - name: Build iOS App with Xcode
         run: |
           cd ios
-          # Find the actual workspace name dynamically so it never fails
           WORKSPACE=$(ls -d *.xcworkspace | head -n 1)
           SCHEME=$(xcodebuild -workspace "$WORKSPACE" -list | grep -m 1 "Schemes:" -A 1 | tail -n 1 | xargs)
           
@@ -43,7 +51,6 @@ jobs:
         run: |
           cd ios/build/Build/Products/Release-iphoneos
           mkdir Payload
-          # Automatically find the .app bundle name
           APP_NAME=$(ls -d *.app | head -n 1)
           mv "$APP_NAME" Payload/
           zip -r ../../../App-Unsigned.ipa Payload
