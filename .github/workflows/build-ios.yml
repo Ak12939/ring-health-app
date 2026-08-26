@@ -19,17 +19,17 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Run Expo Prebuild
-        run: npx expo prebuild --platform ios --clean
-
-      - name: Verify iOS Directory
+      - name: Run Expo Prebuild & CocoaPods
         run: |
-          if [ ! -d "ios" ]; then
-            echo "Error: ios directory was not generated!"
-            exit 1
-          fi
+          npx expo prebuild --platform ios --clean
           cd ios
-          ls -la
+          pod install
+          cd ..
+
+      - name: Verify iOS Directory Contents
+        run: |
+          echo "Listing ios directory:"
+          ls -la ios
 
       - name: Build iOS App with Xcode
         run: |
