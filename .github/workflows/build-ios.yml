@@ -1,0 +1,44 @@
+name: Build Unsigned iOS IPA
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-ios:
+    runs-on: macos-14
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Run Expo Prebuild
+        run: npx expo prebuild --platform ios
+
+      - name: Build iOS App with Xcode
+        run: |
+          cd ios
+          xcodebuild -workspace *.xcworkspace \
+            -scheme $(ls -d *.xcodeproj | sed 's/\.xcodeproj//') \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Create Unsigned IPA Package
+        run: |
+          mkdir -p Payload
+          mv ios/build/Build/Products/Release-iphoneos/*.app Payload/
+          zip -r App.ipa Payload
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: App-Unsigned-IPA
+          path: App.ipa
