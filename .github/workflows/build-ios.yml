@@ -14,31 +14,43 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18
+          cache: 'npm'
 
       - name: Install Dependencies
-        run: npm install --legacy-peer-deps
+        run: npm install
 
       - name: Run Expo Prebuild
-        run: npx expo prebuild --platform ios
+        run: npx expo prebuild --platform ios --clean
 
       - name: Build iOS App with Xcode
         run: |
           cd ios
-          xcodebuild -workspace *.xcworkspace \
-            -scheme $(ls -d *.xcodeproj | sed 's/\.xcodeproj//') \
+          # Find the actual workspace name dynamically so it never fails
+          WORKSPACE=$(ls -d *.xcworkspace | head -n 1)
+          SCHEME=$(xcodebuild -workspace "$WORKSPACE" -list | grep -m 1 "Schemes:" -A 1 | tail -n 1 | xargs)
+          
+          echo "Found workspace: $WORKSPACE"
+          echo "Found scheme: $SCHEME"
+          
+          xcodebuild -workspace "$WORKSPACE" \
+            -scheme "$SCHEME" \
             -configuration Release \
             -sdk iphoneos \
             -derivedDataPath build \
-            CODE_SIGNING_ALLOWED=NO
+            build CODE_SIGNING_ALLOWED=NO
 
       - name: Create Unsigned IPA Package
         run: |
-          mkdir -p Payload
-          mv ios/build/Build/Products/Release-iphoneos/*.app Payload/
-          zip -r App.ipa Payload
+          cd ios/build/Build/Products/Release-iphoneos
+          mkdir Payload
+          # Automatically find the .app bundle name
+          APP_NAME=$(ls -d *.app | head -n 1)
+          mv "$APP_NAME" Payload/
+          zip -r ../../../App-Unsigned.ipa Payload
+          cd ../../../..
 
       - name: Upload IPA Artifact
         uses: actions/upload-artifact@v4
         with:
           name: App-Unsigned-IPA
-          path: App.ipa
+          path: ios/App-Unsigned.ipa
