@@ -54,12 +54,17 @@ jobs:
             -derivedDataPath build \
             build CODE_SIGNING_ALLOWED=NO
 
-      - name: Create Unsigned IPA Package
+      - - name: Create Unsigned IPA Package
         run: |
           cd ios/build/Build/Products/Release-iphoneos
           mkdir Payload
-          APP_NAME=$(ls -d *.app | head -n 1)
-          mv "$APP_NAME" Payload/
+          APP_PATH=$(find . -maxdepth 2 -name "*.app" | head -n 1)
+          if [ -z "$APP_PATH" ]; then
+            echo "Error: .app bundle not found!"
+            exit 1
+          fi
+          echo "Found app bundle: $APP_PATH"
+          mv "$APP_PATH" Payload/
           zip -r ../../../App-Unsigned.ipa Payload
           cd ../../../..
 
