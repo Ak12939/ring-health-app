@@ -54,7 +54,7 @@ jobs:
             -derivedDataPath build \
             build CODE_SIGNING_ALLOWED=NO
 
-      - - name: Create Unsigned IPA Package
+      - name: Create Unsigned IPA Package
         run: |
           cd ios/build/Build/Products/Release-iphoneos
           mkdir Payload
