@@ -35,7 +35,14 @@ jobs:
         run: |
           cd ios
           WORKSPACE=$(ls -d *.xcworkspace | head -n 1)
-          SCHEME=$(xcodebuild -workspace "$WORKSPACE" -list | grep -m 1 "Schemes:" -A 1 | tail -n 1 | xargs)
+          
+          # Filter out Pods and Expo helper schemes to find the main app scheme
+          SCHEME=$(xcodebuild -workspace "$WORKSPACE" -list | grep -A 20 "Schemes:" | tail -n +3 | tr -d ' ' | grep -vE '^(Pods-|EX|Expo|React|Yoga|RCT)' | head -n 1)
+          
+          # Fallback if filter is too aggressive
+          if [ -z "$SCHEME" ]; then
+            SCHEME="RingPulse"
+          fi
           
           echo "Found workspace: $WORKSPACE"
           echo "Found scheme: $SCHEME"
