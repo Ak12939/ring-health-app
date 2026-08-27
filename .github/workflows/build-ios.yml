@@ -56,17 +56,17 @@ jobs:
 
       - name: Create Unsigned IPA Package
         run: |
-          cd ios/build/Build/Products/Release-iphoneos
-          mkdir Payload
-          APP_PATH=$(find . -maxdepth 2 -name "*.app" | head -n 1)
+          cd ios
+          mkdir -p Payload
+          APP_PATH=$(find build -name "*.app" -maxdepth 5 | head -n 1)
           if [ -z "$APP_PATH" ]; then
-            echo "Error: .app bundle not found!"
+            echo "Error: .app bundle not found anywhere in build directory!"
             exit 1
           fi
           echo "Found app bundle: $APP_PATH"
-          mv "$APP_PATH" Payload/
-          zip -r ../../../App-Unsigned.ipa Payload
-          cd ../../../..
+          cp -r "$APP_PATH" Payload/
+          zip -r ../App-Unsigned.ipa Payload
+          cd ..
 
       - name: Upload IPA Artifact
         uses: actions/upload-artifact@v4
